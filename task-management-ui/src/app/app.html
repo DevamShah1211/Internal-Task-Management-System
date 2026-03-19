@@ -1,0 +1,105 @@
+<mat-sidenav-container class="sidenav-container" *ngIf="showLayout; else noAuth" appClickSpark>
+  <app-aurora-background></app-aurora-background>
+
+  <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile" class="sidenav">
+    <div class="logo" routerLink="/dashboard" (click)="isMobile ? sidenav.close() : null">
+      <div class="logo-box">
+        <mat-icon>task_alt</mat-icon>
+      </div>
+      <span>TaskFlow</span>
+    </div>
+    
+    <mat-nav-list class="premium-nav">
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" (click)="isMobile ? sidenav.close() : null">
+        <mat-icon matListItemIcon>grid_view</mat-icon>
+        <span matListItemTitle>Overview</span>
+      </a>
+      <a mat-list-item routerLink="/tasks" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" (click)="isMobile ? sidenav.close() : null">
+        <mat-icon matListItemIcon>content_paste</mat-icon>
+        <span matListItemTitle>Assignments</span>
+      </a>
+      <a mat-list-item routerLink="/tasks/new" routerLinkActive="active-link" (click)="isMobile ? sidenav.close() : null">
+        <mat-icon matListItemIcon>add_circle_outline</mat-icon>
+        <span matListItemTitle>Launch Task</span>
+      </a>
+      
+      <div class="nav-divider" *ngIf="authService.isAdmin()"></div>
+      <div class="nav-label" *ngIf="authService.isAdmin()">Administration</div>
+      
+      <a mat-list-item *ngIf="authService.isAdmin()" routerLink="/users" routerLinkActive="active-link" (click)="isMobile ? sidenav.close() : null">
+        <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+        <span matListItemTitle>Access Hub</span>
+      </a>
+    </mat-nav-list>
+
+    <div class="user-profile-nav" *ngIf="authService.currentUser$ | async as currentUser">
+      <div class="profile-card">
+        <div class="avatar shadow-sm">
+          {{currentUser.name[0]}}
+        </div>
+        <div class="user-info-text">
+          <p class="name">{{currentUser.name}}</p>
+          <p class="role">@{{currentUser.role.toLowerCase()}}</p>
+        </div>
+        <button mat-icon-button (click)="logout()" class="logout-icon-btn" matTooltip="Terminate Session">
+          <mat-icon>power_settings_new</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="glass-header">
+      <div class="header-main">
+        <button mat-icon-button *ngIf="isMobile" (click)="sidenav.toggle()" class="mobile-toggle">
+          <mat-icon>menu_open</mat-icon>
+        </button>
+        <div class="page-identity">
+          <h2 class="current-section">{{getPageTitle()}}</h2>
+          <span class="dot-separator"></span>
+          <p class="current-msg">{{getPageSubtitle()}}</p>
+        </div>
+      </div>
+      
+      <div class="header-controls">
+        <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="icon-pill">
+          <mat-icon [matBadge]="unreadCount" matBadgeColor="warn" [matBadgeHidden]="unreadCount === 0">notifications</mat-icon>
+        </button>
+        
+        <button mat-button routerLink="/profile" class="profile-pill">
+          <div class="p-avatar" *ngIf="authService.currentUserValue">{{authService.currentUserValue.name[0]}}</div>
+          <span class="p-name" *ngIf="authService.currentUserValue">{{authService.currentUserValue.name.split(' ')[0]}}</span>
+          <mat-icon>expand_more</mat-icon>
+        </button>
+      </div>
+
+      <mat-menu #notificationMenu="matMenu" class="notification-menu" xPosition="before">
+        <div class="notif-header">Notifications</div>
+        <mat-divider></mat-divider>
+        <ng-container *ngIf="notifications.length > 0; else emptyState">
+          <div class="notif-list">
+            <button mat-menu-item *ngFor="let n of notifications" (click)="markAsRead(n)" [class.unread]="!n.isRead">
+              <span class="unread-dot" *ngIf="!n.isRead"></span>
+              <span class="notif-message">{{n.message}}</span>
+            </button>
+          </div>
+        </ng-container>
+        <ng-template #emptyState>
+          <div class="empty-notif">No new notifications.</div>
+        </ng-template>
+      </mat-menu>
+    </mat-toolbar>
+
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<ng-template #noAuth>
+  <div class="auth-wrapper" appClickSpark>
+    <app-aurora-background></app-aurora-background>
+    <router-outlet></router-outlet>
+  </div>
+</ng-template>
+ 
